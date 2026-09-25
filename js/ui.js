@@ -327,7 +327,7 @@ const UI = {
       { label: 'Settings', act: () => { this.settingsBack = 'pause'; Game.state_ = 'settings'; this.setSel = 0; } },
       { label: 'Restart from checkpoint', act: () => Game.restoreCheckpoint() },
       { label: 'Restart chapter', act: () => Game.restartLevel() },
-      { label: 'Save & quit to title', act: () => { Game.persist(false); Game.goTitle(); } },
+      { label: 'Quit to title', sub: 'saved at chapter start', act: () => { Sfx.siren(false); Game.goTitle(); } },
     ];
   },
   updatePause() {
@@ -515,8 +515,9 @@ const UI = {
       const [size, col, st] = l.h ? [54, '#f0c060', '700'] : l.s ? [30, '#c8a060', 'italic'] : [28, '#e8dcc0', ''];
       g.font = `${st} ${size}px ${FONT}`;
       const lines = U.wrap(g, l.t, 1300);
-      for (const ln of lines) { if (y > -60 && y < UIH + 60) this.text(g, ln, UIW / 2, y, size, col, 'center', FONT, st); y += size * 1.35; }
-      y += l.h ? 30 : 12;
+      if (l.h) y += 50;
+      for (const ln of lines) { y += size * 1.3; if (y > -60 && y < UIH + 60) this.text(g, ln, UIW / 2, y, size, col, 'center', FONT, st); }
+      y += l.h ? 14 : 16;
     }
     if (y < 0) Game.creditsT = 0;
     this.text(g, '[Esc] Title', UIW - 40, 1050, 22, '#a89878', 'right', FONT_UI);

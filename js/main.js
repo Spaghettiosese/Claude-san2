@@ -179,7 +179,7 @@ const Game = {
   continueGame() {
     const s = this.save;
     if (!s || !s.run) return this.newGame();
-    this.stateRestore(s.run);
+    this.stateRestore((s.chapterStarts && s.chapterStarts[s.chapter]) || s.run);
     this.chapter = s.chapter;
     this.startChapter(s.chapter, true);
   },
