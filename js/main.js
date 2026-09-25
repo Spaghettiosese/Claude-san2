@@ -337,6 +337,7 @@ const Game = {
   // ---------------------------------------------------------------- update
   update(dt) {
     this.time += dt;
+    Input.pollPads();
     for (const t of this.toasts) t.t -= dt;
     this.toasts = this.toasts.filter((t) => t.t > 0);
     if (Input.pressed.has('F1')) { this.showHelp = !this.showHelp; }

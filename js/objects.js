@@ -13,14 +13,15 @@ ObjTypes.door = {
   init(o, W) { o.w = 10; o.h = 32; o.c = Math.floor(o.x / TILE); o.r = Math.floor((o.y - 1) / TILE); o.open = !!o.open; o.sync(W); },
   methods: {
     sync(W) { const L = W.level; L.setDyn(this.c, this.r, !this.open); L.setDyn(this.c, this.r - 1, !this.open); },
-    setOpen(W, v) {
+    setOpen(W, v, silent) {
       if (this.open === v) return;
       if (!v) { // don't close on someone
         const occ = [W.player, ...W.enemies, ...W.followers].some((a) => a && Math.abs(a.x - this.x) < 9 && Math.abs(a.y - this.y) < 20);
         if (occ) return;
       }
-      this.open = v; this.sync(W); Sfx.play('door', 0.7);
-      W.level.noise(this.x, this.y - 12, 45, 'door', 'door');
+      this.open = v; this.sync(W);
+      if (Math.abs(W.player.x - this.x) < 260) Sfx.play('door', silent ? 0.35 : 0.7);
+      if (!silent) W.level.noise(this.x, this.y - 12, 45, 'door', 'door');
     },
   },
   prompt(o, W) {

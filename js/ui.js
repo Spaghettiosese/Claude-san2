@@ -110,7 +110,7 @@ const UI = {
       g.strokeStyle = s ? '#f0c060' : '#6a5838'; g.lineWidth = 2; g.strokeRect(x + 3, y + 3, w - 6, h - 6);
       this.text(g, unlocked ? c.kicker : '— Locked —', x + 30, y + 40, 24, '#c8a060', 'left', FONT_UI, '600');
       this.text(g, unlocked ? c.name : '???', x + 30, y + 80, 34, unlocked ? '#f0e6d0' : '#6a6058', 'left', FONT, '700');
-      if (unlocked) this.text(g, c.place, x + w - 24, y + 80, 22, '#a89878', 'right', FONT_UI, 'italic');
+      if (unlocked) this.text(g, c.place, x + w - 24, y + 40, 20, '#a89878', 'right', FONT_UI, 'italic');
     });
     this.text(g, '[Enter] Play · [Esc] Back — progress is saved at the start of every chapter', UIW / 2, 1050, 24, '#a89878', 'center', FONT_UI);
   },
@@ -314,7 +314,8 @@ const UI = {
       ['G', 'Draw / holster firearm'], ['R', 'Order companion to wait / follow'], ['Space (while hidden)', 'Hold your breath when searched'], ['Tab / J', 'Journal: objectives, items, documents, memories, people'], ['Esc / P', 'Pause'], ['Shift (in dialogue)', 'Fast-forward text'],
     ];
     rows.forEach(([k, v], i) => { this.text(g, k, 800, 280 + i * 40, 26, '#e0c070', 'right', FONT_UI, '700'); this.text(g, v, 830, 280 + i * 40, 26, '#e8dcc0', 'left', FONT_UI); });
-    this.text(g, 'One shot kills Lan. Shadows hide you. Noise travels through walls. [F1] to close.', UIW / 2, 930, 24, '#c8a060', 'center', FONT, 'italic');
+    this.text(g, 'Gamepad: A jump · B crouch · X interact · Y kill · LB knockout · RB throw · LT run · RT prone · Start pause', UIW / 2, 915, 22, '#a8a080', 'center', FONT_UI);
+    this.text(g, 'One shot kills Lan. Shadows hide you. Noise travels through walls. [F1] to close.', UIW / 2, 945, 24, '#c8a060', 'center', FONT, 'italic');
   },
 
   // ---------------------------------------------------------------- pause & settings
@@ -464,7 +465,7 @@ const UI = {
     this.text(g, title.toUpperCase(), UIW / 2, 480, 96, '#e8d0c0', 'center', FONT, '700');
     let sub = '';
     if (reason === 'fail') sub = D.text;
-    else if (reason === 'captured') sub = 'Nationalist guards drag you away. Nobody will find Ming now.';
+    else if (reason === 'captured') sub = `${Game.world && Game.world.def.faction === 'ccp' ? 'The Eighth Route sentries march you off as a spy' : 'The guards drag you away to a cell'}. Nobody will find Ming now.`;
     else if (reason === 'follower') sub = 'Without them, there is no reason to go on.';
     else if (Story.deathText[reason]) sub = Story.deathText[reason];
     else if (typeof reason === 'string' && reason.length > 12) sub = reason;
@@ -478,8 +479,8 @@ const UI = {
 
   // ---------------------------------------------------------------- chapter summary
   rank(s) {
-    if (!s.alerts && !s.kills && !s.bodies) return ['Ghost of Jinling', 'Unseen. Untouched. Like smoke on the river.'];
-    if (!s.alerts && !s.kills) return ['Lantern in the Fog', 'Never spotted, and no blood on your hands.'];
+    if (!s.alerts && !s.kills && !s.kos && !s.bodies && !s.spotted) return ['Ghost of Jinling', 'Unseen. Untouched. Like smoke on the river.'];
+    if (!s.alerts && !s.kills) return ['Lantern in the Fog', 'Never raised the alarm, and no blood on your hands.'];
     if (!s.alerts) return ['Silent Blade', 'They never saw you coming.'];
     if (s.kills > 8) return ['Tiger of the Yangtze', 'You fought your way through.'];
     if (s.alerts <= 2) return ['Survivor', 'A few close calls — but you made it.'];
@@ -497,11 +498,11 @@ const UI = {
     this.panel(g, UIW / 2 - 520, 310, 1040, 560);
     const rows = [['Time', U.fmtTime(s.time || 0)], ['Times spotted', s.spotted || 0], ['Alerts raised', s.alerts || 0], ['Bodies discovered', s.bodies || 0], ['Kills', s.kills || 0], ['Knockouts', s.kos || 0], ['Shots fired', s.shots || 0], ['Memories found', `${Game.photos.length} / ${Story.photoCount}`]];
     rows.forEach(([k, v], i) => { this.text(g, k, UIW / 2 - 440, 380 + i * 50, 30, '#d8ccb0', 'left', FONT); this.text(g, String(v), UIW / 2 + 440, 380 + i * 50, 30, '#f4ead8', 'right', FONT_UI, '700'); });
-    this.text(g, rk, UIW / 2, 820, 44, '#f0c060', 'center', FONT, '700');
-    this.text(g, rd, UIW / 2, 860, 24, '#c8b898', 'center', FONT, 'italic');
+    this.text(g, rk, UIW / 2, 800, 44, '#f0c060', 'center', FONT, '700');
+    this.text(g, rd, UIW / 2, 840, 24, '#c8b898', 'center', FONT, 'italic');
     if (S.t > 1) this.text(g, '[Enter] Continue — progress saved', UIW / 2, 960, 28, '#f0e6d0', 'center', FONT_UI, '600');
     g.globalAlpha = 1;
-    if (!s.alerts && !S.achChecked) { S.achChecked = true; Game.unlock('ghost_' + Game.chapter); if (!s.alerts && !s.kills && !s.kos) Game.unlock('pacifist_ghost'); }
+    if (!s.alerts && !S.achChecked) { S.achChecked = true; Game.unlock('ghost'); if (!s.kills && !s.kos) Game.unlock('pacifist_ghost'); }
   },
 
   // ---------------------------------------------------------------- credits

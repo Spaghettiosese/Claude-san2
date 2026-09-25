@@ -74,25 +74,25 @@ const Input = {
   pressed: new Set(),
   mouse: { x: 0, y: 0, click: false, moved: false },
   binds: {
-    left: ['KeyA', 'ArrowLeft'],
-    right: ['KeyD', 'ArrowRight'],
-    up: ['KeyW', 'ArrowUp'],
-    down: ['KeyS', 'ArrowDown'],
-    jump: ['Space'],
-    run: ['ShiftLeft', 'ShiftRight'],
-    crouch: ['KeyC', 'ControlLeft'],
-    prone: ['KeyZ'],
-    interact: ['KeyE'],
-    kill: ['KeyF'],
-    choke: ['KeyV'],
-    throw: ['KeyQ'],
-    firecracker: ['KeyT'],
-    weapon: ['KeyG'],
-    order: ['KeyR'],
-    journal: ['Tab', 'KeyJ'],
-    pause: ['Escape', 'KeyP'],
-    confirm: ['Enter', 'Space', 'KeyE'],
-    breath: ['Space'],
+    left: ['KeyA', 'ArrowLeft', 'Pad14', 'PadLX-'],
+    right: ['KeyD', 'ArrowRight', 'Pad15', 'PadLX+'],
+    up: ['KeyW', 'ArrowUp', 'Pad12', 'PadLY-'],
+    down: ['KeyS', 'ArrowDown', 'Pad13', 'PadLY+'],
+    jump: ['Space', 'Pad0'],
+    run: ['ShiftLeft', 'ShiftRight', 'Pad6'],
+    crouch: ['KeyC', 'ControlLeft', 'Pad1'],
+    prone: ['KeyZ', 'Pad7'],
+    interact: ['KeyE', 'Pad2'],
+    kill: ['KeyF', 'Pad3'],
+    choke: ['KeyV', 'Pad4'],
+    throw: ['KeyQ', 'Pad5'],
+    firecracker: ['KeyT', 'Pad11'],
+    weapon: ['KeyG', 'Pad10'],
+    order: ['KeyR', 'PadRX+'],
+    journal: ['Tab', 'KeyJ', 'Pad8'],
+    pause: ['Escape', 'KeyP', 'Pad9'],
+    confirm: ['Enter', 'Space', 'KeyE', 'Pad0'],
+    breath: ['Space', 'Pad0'],
     c1: ['Digit1', 'Numpad1'], c2: ['Digit2', 'Numpad2'], c3: ['Digit3', 'Numpad3'], c4: ['Digit4', 'Numpad4'],
   },
   init(canvas) {
@@ -120,6 +120,24 @@ const Input = {
       const t = e.touches[0]; pos(t); this.mouse.click = true;
       if (typeof Sfx !== 'undefined') Sfx.unlock();
     }, { passive: true });
+  },
+  // Gamepad (standard mapping): A jump/confirm, B crouch, X interact, Y kill, LB knockout,
+  // RB throw, LT run, RT prone, L3 weapon, R3 firecracker, Back journal, Start pause.
+  pollPads() {
+    const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+    const now = new Set();
+    for (const gp of pads) {
+      if (!gp) continue;
+      gp.buttons.forEach((b, i) => { if (b.pressed || b.value > 0.5) now.add('Pad' + i); });
+      const [lx, ly, rx] = gp.axes;
+      if (lx < -0.5) now.add('PadLX-'); if (lx > 0.5) now.add('PadLX+');
+      if (ly < -0.6) now.add('PadLY-'); if (ly > 0.6) now.add('PadLY+');
+      if (rx > 0.6) now.add('PadRX+');
+    }
+    this.padDown = this.padDown || new Set();
+    for (const k of now) if (!this.padDown.has(k)) { this.pressed.add(k); this.down.add(k); if (typeof Sfx !== 'undefined') Sfx.unlock(); }
+    for (const k of this.padDown) if (!now.has(k)) this.down.delete(k);
+    this.padDown = now;
   },
   is(a) { return this.binds[a].some((k) => this.down.has(k)); },
   hit(a) { return this.binds[a].some((k) => this.pressed.has(k)); },

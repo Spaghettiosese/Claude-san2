@@ -43,6 +43,8 @@ Progress is saved automatically at the start of every chapter (browser `localSto
 | `1`–`4`, mouse | Pick dialogue choices |
 | `F1` | Controls overlay |
 
+A standard gamepad also works: **A** jump/confirm · **B** crouch · **X** interact · **Y** kill · **LB** knockout · **RB** throw · **LT** run · **RT** prone · **L3** weapon · **R3** firecracker · **Back** journal · **Start** pause.
+
 **One shot kills Lan.** Shadows hide you, noise travels through walls, and every gunshot brings
 the whole garrison.
 
@@ -151,6 +153,7 @@ all 13 memories, **August 1945**.
 65. Dynamic lighting: darkness overlay, lamp glows, lanterns, flickering candles, film grain and vignette.
 66. Autosave, continue, chapter select, and an endings & achievements gallery.
 67. Mouse support in menus, dialogue and keypads.
+68. Gamepad support (standard mapping).
 
 ## Code layout
 

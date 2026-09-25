@@ -741,7 +741,7 @@ class Enemy {
     const aheadX = this.x + dir * 8;
     const door = this.world && this.world.doorAt(aheadX, this.y - 8);
     if (door && !door.open) {
-      if (door.enemyCanOpen !== false) { door.setOpen(this.world, true); }
+      if (door.enemyCanOpen !== false && !door.gate && !door.locked) { door.setOpen(this.world, true, true); }
       else { this.vx = 0; return true; }
     }
     if (!this.canStand(L, this.x + dir * 7)) { this.vx = 0; return true; }
