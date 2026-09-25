@@ -207,6 +207,7 @@ const Game = {
     const def = Levels[ch.level];
     if (!def) { console.error('No level', ch.level); this.completeLevel(); return; }
     this.levelStartState = this.stateSnapshot();
+    this.completing = false;
     this.world = new World(def);
     this.checkpoint = this.world.snapshot();
     this.state_ = 'play';
@@ -235,6 +236,9 @@ const Game = {
     Music.play(this.world.def.music || 'stealth');
   },
   completeLevel(exitObj) {
+    if (this.completing) return;
+    this.completing = true;
+    this.sceneQueue = [];
     const W = this.world;
     const ch = Story.chapters[this.chapter];
     if (W) {
@@ -277,7 +281,7 @@ const Game = {
     const world = opts.bgMode ? null : this.world;
     this.state_ = 'script';
     const mood = Music.mood;
-    this.script = new Script(lines, {
+    const sc = new Script(lines, {
       world,
       bg: opts.bgMode ? 'black' : null,
       onEnd: (res) => {
@@ -288,7 +292,9 @@ const Game = {
         if (this.sceneQueue.length && !this.script) { const [nid, nopts] = this.sceneQueue.shift(); this.runScene(nid, nopts); }
       },
     });
-    if (this.script.done) { /* ended instantly */ }
+    // a scene made only of instant commands finishes inside its constructor (and may
+    // already have started the next queued scene) — only keep it if it is still running
+    if (!sc.done) this.script = sc;
   },
   showLetter(title, text, style) { this.runScene([{ letter: { title, text, style } }]); },
   showMemory(id) { this.runScene([{ memory: id }]); },
@@ -338,6 +344,7 @@ const Game = {
       case 'title': UI.updateTitle(dt); break;
       case 'menu': UI.updateMenu(dt); break;
       case 'play': {
+        if (this.script && !this.script.done) { this.state_ = 'script'; break; }
         if (Input.hit('pause')) { this.state_ = 'pause'; this.pauseSel = 0; Sfx.play('choice'); break; }
         if (Input.hit('journal')) { this.state_ = 'journal'; UI.journal.open(); break; }
         this.world.update(dt);

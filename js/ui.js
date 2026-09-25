@@ -131,7 +131,7 @@ const UI = {
     const ach = Object.entries(Story.achievements);
     ach.forEach(([id, a], i) => {
       const got = Game.meta.achievements[id];
-      const y = 180 + i * 44;
+      const y = 180 + i * 40;
       this.text(g, (got ? '★ ' : '☆ ') + a.name, 1000, y, 28, got ? '#f0d080' : '#6a6058', 'left', FONT, '600');
       this.text(g, got || !a.secret ? a.desc : 'Secret', 1340, y, 20, got ? '#c8b898' : '#6a6058', 'left', FONT_UI, 'italic');
     });
@@ -145,12 +145,13 @@ const UI = {
     const p = W.player, L = W.level;
     // objective
     if (Game.objective) {
-      g.fillStyle = 'rgba(10,8,6,0.62)'; g.fillRect(24, 24, 760, 88);
-      g.fillStyle = '#8a1a14'; g.fillRect(24, 24, 8, 88);
-      this.text(g, Story.chapters[Game.chapter].kicker.toUpperCase(), 50, 58, 20, '#c8a060', 'left', FONT_UI, '600');
-      g.font = `28px ${FONT}`;
-      const obj = U.wrap(g, Game.objective, 700)[0];
-      this.text(g, obj, 50, 96, 28, '#f0e6d0', 'left', FONT);
+      g.font = `26px ${FONT}`;
+      const objL = U.wrap(g, Game.objective, 700).slice(0, 2);
+      const oh = 54 + objL.length * 32;
+      g.fillStyle = 'rgba(10,8,6,0.62)'; g.fillRect(24, 24, 760, oh);
+      g.fillStyle = '#8a1a14'; g.fillRect(24, 24, 8, oh);
+      this.text(g, Story.chapters[Game.chapter].kicker.toUpperCase(), 50, 56, 20, '#c8a060', 'left', FONT_UI, '600');
+      objL.forEach((l, i) => this.text(g, l, 50, 92 + i * 32, 26, '#f0e6d0', 'left', FONT));
     }
     // status pill
     let status = 'UNSEEN', col = '#8a9a8a';
@@ -239,9 +240,9 @@ const UI = {
       g.font = `italic 28px ${FONT}`;
       const lines = U.wrap(g, W.hintText, 1000);
       const h = 30 + lines.length * 38;
-      g.fillStyle = 'rgba(12,10,8,0.8)'; g.fillRect(UIW / 2 - 540, 130, 1080, h);
-      g.strokeStyle = '#6a5838'; g.strokeRect(UIW / 2 - 536, 134, 1072, h - 8);
-      lines.forEach((l, i) => this.text(g, l, UIW / 2, 168 + i * 38, 28, '#e8dcc0', 'center', FONT, 'italic'));
+      g.fillStyle = 'rgba(12,10,8,0.8)'; g.fillRect(UIW / 2 - 540, 158, 1080, h);
+      g.strokeStyle = '#6a5838'; g.strokeRect(UIW / 2 - 536, 162, 1072, h - 8);
+      lines.forEach((l, i) => this.text(g, l, UIW / 2, 196 + i * 38, 28, '#e8dcc0', 'center', FONT, 'italic'));
     }
   },
 
@@ -290,7 +291,7 @@ const UI = {
 
   // ---------------------------------------------------------------- toasts / help
   drawToasts(g) {
-    let ty = 250;
+    let ty = 330;
     Game.toasts.forEach((t, i) => {
       const a = Math.min(1, t.t * 2, (t.max - t.t) * 4 + 0.2);
       g.globalAlpha = U.clamp(a, 0, 1);

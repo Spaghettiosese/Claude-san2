@@ -758,7 +758,7 @@ S.ch6_outro = [
   ['lan:sad', `Nanjing.`],
   ['han:neutral', `And then Shanghai, and 76, and your brother. ...I hate this. I hate not being there.`],
   { choice: [
-    { t: `(Kiss him.)`, need: 'aff:han>=4', lockText: 'Requires: a deep bond with Han', go: 'kiss' },
+    { t: `(Kiss him.)`, need: 'aff:han>=4&!romance:lu', lockText: 'Requires: a deep bond with Han — and a free heart', go: 'kiss' },
     { t: `(Take his hand.)`, go: 'hand', aff: { han: 1 } },
     { t: `"We'll see each other again. Comrade."`, go: 'friend' },
   ] },
@@ -877,7 +877,7 @@ S.ch7_outro = [
   { label: 'next' },
   ['lu:neutral', `76 is a slaughterhouse, Su Lan. I can't go in with you. They know my face.`],
   { choice: [
-    { t: `(Kiss him.)`, need: 'aff:lu>=4', lockText: 'Requires: a deep bond with Lu', go: 'kiss' },
+    { t: `(Kiss him.)`, need: 'aff:lu>=4&!romance:han', lockText: 'Requires: a deep bond with Lu — and a free heart', go: 'kiss' },
     { t: `"Why do you do this work, Lu?"`, go: 'why', aff: { lu: 1 } },
     { t: `"Goodnight, Lu Zhiyuan."`, go: 'bye' },
   ] },
