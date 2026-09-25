@@ -575,7 +575,7 @@ class World {
   exitLevel(o) { Game.completeLevel(o); }
   killPlayer(reason, by) {
     const p = this.player;
-    if (p.dead || Game.godMode) return;
+    if (p.dead || Game.godMode || Game.settings.invincible) return;
     p.dead = true; p.pose = 'dead'; p.hidden = null;
     if (p.drag) { p.drag.enemy.body.dragged = false; p.drag = null; }
     this.deathT = 0; this.deathReason = reason; this.deathBy = by;
@@ -592,7 +592,7 @@ class World {
   }
   captured(e) {
     const p = this.player;
-    if (p.dead) return;
+    if (p.dead || Game.settings.invincible) return;
     p.dead = true; p.pose = 'stand';
     this.deathT = 0.2; this.deathReason = 'captured'; this.deathBy = e;
     Sfx.play('shout');

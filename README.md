@@ -154,6 +154,7 @@ all 13 memories, **August 1945**.
 66. Autosave, continue, chapter select, and an endings & achievements gallery.
 67. Mouse support in menus, dialogue and keypads.
 68. Gamepad support (standard mapping).
+69. Infinite-health cheat (Settings → Cheat: infinite health).
 
 ## Code layout
 
