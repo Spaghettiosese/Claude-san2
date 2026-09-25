@@ -27,7 +27,7 @@ const Game = {
     }
     Sfx.setVolumes({ master: this.settings.master, music: this.settings.music, sfx: this.settings.sfx });
     const fit = () => {
-      const r = Math.min(innerWidth / UIW, innerHeight / UIH);
+      const r = Math.min((innerWidth - 32) / UIW, (innerHeight - 32) / UIH);
       this.canvas.style.width = Math.floor(UIW * r) + 'px';
       this.canvas.style.height = Math.floor(UIH * r) + 'px';
     };
