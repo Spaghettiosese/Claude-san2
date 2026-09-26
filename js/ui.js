@@ -178,6 +178,7 @@ const UI = {
     this.text(g, p.hidden ? 'HIDDEN' : vis < 0.3 ? 'SHADOW' : vis < 0.65 ? 'DIM' : 'LIT', gx, gy + 7, 16, vis > 0.5 ? '#3a2410' : '#e8dcc0', 'center', FONT_UI, '700');
     const stanceLbl = p.hidden ? 'Hidden' : p.onLadder ? 'Climbing' : p.drag ? 'Dragging body' : p.stance === 'prone' ? 'Prone' : p.stance === 'crouch' ? 'Crouched' : p.running ? 'Running' : 'Standing';
     this.text(g, stanceLbl, 132, UIH - 100, 28, '#f0e6d0', 'left', FONT, '600');
+    if (Game.settings.ghost) this.text(g, 'UNDETECTABLE', 260, UIH - 20, 16, '#80c0e0', 'left', FONT_UI, '700');
     if (Game.settings.invincible) this.text(g, 'INVINCIBLE', 132, UIH - 20, 16, '#e0b040', 'left', FONT_UI, '700');
     if (p.disguise) this.text(g, W.disguiseBurned ? 'Disguise: BLOWN' : 'Disguise: intact', 290, UIH - 100, 20, W.disguiseBurned ? '#e05040' : '#80c080', 'left', FONT_UI, '600');
     // noise meter
@@ -358,6 +359,7 @@ const UI = {
       { label: 'Music volume', val: Math.round(S.music * 100) + '%', left: () => { S.music = Math.max(0, +(S.music - 0.1).toFixed(1)); }, right: () => { S.music = Math.min(1, +(S.music + 0.1).toFixed(1)); } },
       { label: 'Effects volume', val: Math.round(S.sfx * 100) + '%', left: () => { S.sfx = Math.max(0, +(S.sfx - 0.1).toFixed(1)); }, right: () => { S.sfx = Math.min(1, +(S.sfx + 0.1).toFixed(1)); } },
       { label: 'Cheat: infinite health', val: S.invincible ? 'On' : 'Off', toggle: () => { S.invincible = !S.invincible; } },
+      { label: 'Cheat: undetectable', val: S.ghost ? 'On' : 'Off', toggle: () => { S.ghost = !S.ghost; } },
       { label: 'Film grain', val: S.grain ? 'On' : 'Off', toggle: () => { S.grain = !S.grain; } },
       { label: 'Fullscreen', val: document.fullscreenElement ? 'On' : 'Off', toggle: () => { if (document.fullscreenElement) document.exitFullscreen(); else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); } },
       { label: 'Back', back: true },
@@ -385,7 +387,7 @@ const UI = {
     const rows = this.settingRows();
     this.setHover = -1;
     rows.forEach((r, i) => {
-      const x = UIW / 2 - 500, y = 200 + i * 64, w = 1000, h = 56;
+      const x = UIW / 2 - 500, y = 190 + i * 62, w = 1000, h = 54;
       const over = Input.mouse.x > x && Input.mouse.x < x + w && Input.mouse.y > y && Input.mouse.y < y + h;
       if (over) this.setHover = i;
       const s = this.setSel === i;

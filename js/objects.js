@@ -312,7 +312,7 @@ ObjTypes.searchlight = {
     o.ang += o.sweep * o.speed * dt;
     if (o.ang > o.a2) { o.ang = o.a2; o.sweep = -1; }
     if (o.ang < o.a1) { o.ang = o.a1; o.sweep = 1; }
-    const p = W.player; if (p.dead || p.hidden) { o.spotT = 0; return; }
+    const p = W.player; if (p.dead || p.hidden || Game.settings.ghost) { o.spotT = 0; return; }
     const lx = o.x, ly = o.y - 40;
     const test = (tx, ty) => {
       const dx = tx - lx, dy = ty - ly; const d = Math.hypot(dx, dy);

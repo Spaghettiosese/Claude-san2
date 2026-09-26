@@ -155,6 +155,7 @@ all 13 memories, **August 1945**.
 67. Mouse support in menus, dialogue and keypads.
 68. Gamepad support (standard mapping).
 69. Infinite-health cheat (Settings → Cheat: infinite health).
+70. Undetectable cheat (Settings → Cheat: undetectable).
 
 ## Code layout
 

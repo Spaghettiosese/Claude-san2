@@ -385,7 +385,7 @@ class Enemy {
 
   seePlayer(W) {
     const p = W.player;
-    if (p.dead || p.hidden) return 0;
+    if (p.dead || p.hidden || Game.settings.ghost) return 0;
     if (p.inGrass && p.stance !== 'stand') {
       const d = Math.hypot(p.x - this.x, p.y - this.y);
       if (p.stance === 'prone' ? (d > 12 || !p.moving) : d > 20) return 0;
@@ -422,7 +422,7 @@ class Enemy {
     let seeTarget = vis > 0 ? p : null;
     // followers are spotted too
     for (const f of W.followers) {
-      if (!f.visible || f.dead) continue;
+      if (!f.visible || f.dead || Game.settings.ghost) continue;
       const fv = Math.max(this.canSeePoint(W, f.x, f.y - f.h + 2), this.canSeePoint(W, f.x, f.y - f.h / 2));
       if (fv > vis) { vis = fv; seeTarget = f; }
     }
@@ -437,7 +437,7 @@ class Enemy {
     if (this.kind === 'dog') {
       // dogs smell nearby players, even hidden
       const d = Math.hypot(p.x - this.x, (p.y - 6) - (this.y - 6));
-      if (!p.dead && d < 34 && !p.inWater) vis = Math.max(vis, 0.6);
+      if (!p.dead && d < 34 && !p.inWater && !Game.settings.ghost) vis = Math.max(vis, 0.6);
     }
     if (vis > 0) {
       const tgt = seeTarget || p;
@@ -694,6 +694,7 @@ class Enemy {
     const L = W.level;
     for (const n of L.noises) {
       if (n.src === this.id || n.t > 0) continue;
+      if (Game.settings.ghost && (n.src === 'player' || n.kind === 'struggle')) continue;
       const walls = L.wallsBetween(this.x, this.y - 12, n.x, n.y);
       const d = Math.hypot(n.x - this.x, (n.y - this.y) * 1.5) + walls * 45;
       const r = n.r * this.K.hear * W.diff.hear;
@@ -900,6 +901,7 @@ class Civilian {
       if (dx * this.facing < 0 && Math.abs(dx) > 20) return false;
       return L.los(this.x, this.y - 18, x, y) && L.lightAt(x, y) > 0.2;
     };
+    if (Game.settings.ghost) return;
     let crime = false;
     if (!p.hidden && (p.action || p.gunDrawn || p.drag) && see(p.x, p.y - 10)) crime = true;
     for (const e of W.enemies) if (!e.alive && e.body && !e.body.hidden && !e.body.dragged && see(e.x, e.y - 4)) crime = true;
