@@ -1,8 +1,8 @@
 'use strict';
 // ---------------------------------------------------------------------------
-// Painted high-resolution character portraits, generated with vector paths,
-// gradients and soft shading. Every portrait is a 400x500 "card" in an
-// art-deco frame, cached per character + expression.
+// Character portraits, painted with vector paths, gradients and soft shading
+// on a 400x500 card, then (by default) re-rendered as 128x160 pixel art in the
+// Moonkai Pixel Studio style (see pixelCard). Cached per character + expression.
 // ---------------------------------------------------------------------------
 const Portraits = {
   cache: new Map(),
@@ -44,13 +44,20 @@ const Portraits = {
   },
 
   get(id, expr = 'neutral') {
-    const key = id + '|' + expr;
+    const pixel = !Game.settings || Game.settings.pixelPortraits !== false;
+    const key = id + '|' + expr + (pixel ? '|px' : '');
     let c = this.cache.get(key);
     if (!c) {
-      c = U.canvas(this.W, this.H);
-      try { this.paint(c.getContext('2d'), this.resolve(id), expr); } catch (e) { console.error('portrait', id, e); }
+      const d = this.resolve(id);
+      try { c = pixel ? this.pixelCard(d, expr) : this.paintedCard(d, expr); } catch (e) { console.error('portrait', id, e); c = U.canvas(this.W, this.H); }
       this.cache.set(key, c);
     }
+    return c;
+  },
+
+  paintedCard(d, expr) {
+    const c = U.canvas(this.W, this.H);
+    this.paint(c.getContext('2d'), d, expr);
     return c;
   },
 
@@ -58,13 +65,135 @@ const Portraits = {
     const c = this.get(id, expr);
     ctx.save();
     ctx.globalAlpha = alpha;
+    if (c.pixel) ctx.imageSmoothingEnabled = false;
     if (flip) { ctx.translate(x + w, y); ctx.scale(-1, 1); ctx.drawImage(c, 0, 0, w, h); }
     else ctx.drawImage(c, x, y, w, h);
+    if (c.pixel && c.historical) {
+      // the caption is set in type at display size so it stays legible over the pixels
+      const fy = y + h * (1 - 30 / this.PH);
+      ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(x + w * 0.06, fy, w * 0.88, h * 0.075);
+      ctx.fillStyle = '#e6c870'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = `${Math.round(h * 0.036)}px "Courier New", monospace`;
+      ctx.fillText('HISTORICAL FIGURE', x + w / 2, fy + h * 0.0375);
+    }
     ctx.restore();
   },
 
   // --------------------------------------------------------------------
-  paint(g, d, expr) {
+  // Moonkai Pixel Studio pass: the painted figure is resampled to a 128x160
+  // bust, its colours snapped to a palette extracted from the art itself
+  // (cel-shaded bands), wrapped in a 1px line-art outline and set on a
+  // Bayer-dithered background with a pixel frame. Drawn back with
+  // nearest-neighbour scaling so every pixel stays crisp.
+  PW: 128, PH: 160,
+
+  pixelCard(d, expr) {
+    const PW = this.PW, PH = this.PH;
+    // 1. figure at full resolution on a transparent card, then resample
+    const big = U.canvas(this.W, this.H);
+    this.paint(big.getContext('2d'), d, expr, true);
+    const c = U.canvas(PW, PH), g = c.getContext('2d', { willReadFrequently: true });
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    g.drawImage(big, 0, 0, PW, PH);
+    const fig = g.getImageData(0, 0, PW, PH), F = fig.data;
+
+    // 2. palette extracted from the art (like the Studio's "extract palette")
+    const pal = this.extractPalette(F, 22);
+    const solid = new Uint8Array(PW * PH);
+    for (let i = 0; i < PW * PH; i++) {
+      const o = i * 4;
+      if (F[o + 3] < 110) continue;
+      solid[i] = 1;
+      const a = F[o + 3] / 255; // un-premultiply the edge blend toward a darker ink
+      const [r, gg, b] = this.nearest(pal, F[o] * a, F[o + 1] * a, F[o + 2] * a);
+      F[o] = r; F[o + 1] = gg; F[o + 2] = b; F[o + 3] = 255;
+    }
+
+    // 3. background: dithered radial ramp, diagonal light bands, rim glow
+    const out = g.createImageData(PW, PH), O = out.data;
+    const B0 = U.hex(d.bg[0]), B1 = U.hex(d.bg[1]);
+    const ramp = [-0.35, 0, 0.45, 0.8, 1].map(t => t < 0 ? this.hueShift(B1, t) : this.lerp3(B0, B1, t));
+    const glow = this.hueShift(B0, 0.14);
+    const bayer = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+    for (let y = 0; y < PH; y++) for (let x = 0; x < PW; x++) {
+      const th = (bayer[(y & 3) * 4 + (x & 3)] + 0.5) / 16;
+      const rr = Math.hypot(x - 64, (y - 64) * 0.85) / 118;
+      let t = U.clamp(rr * 4, 0, 3.999);
+      let k = Math.floor(t) + ((t % 1) > th ? 1 : 0);
+      let col = ramp[Math.min(4, k)];
+      const gr = Math.hypot(x - 51, y - 54) / 62;
+      if (gr < 1 && gr > th * 1.15) col = gr < 0.72 ? glow : col;
+      if (gr < 0.72 && th > 0.5) col = glow;
+      if (((x + (y >> 1)) % 12) === 0 && y < 150 && th < 0.5) col = this.hueShift(col, 0.12);
+      const o = (y * PW + x) * 4;
+      O[o] = col[0]; O[o + 1] = col[1]; O[o + 2] = col[2]; O[o + 3] = 255;
+    }
+    // edge vignette: darkest band at the rim
+    for (let y = 0; y < PH; y++) for (let x = 0; x < PW; x++) {
+      const e = Math.min(x, y, PW - 1 - x, PH - 1 - y);
+      if (e < 6 && (bayer[(y & 3) * 4 + (x & 3)] / 16) > e / 6) { const o = (y * PW + x) * 4; O[o] = ramp[0][0]; O[o + 1] = ramp[0][1]; O[o + 2] = ramp[0][2]; }
+    }
+
+    // 4. figure + 1px outline (dark, tinted toward the background)
+    const ink = this.lerp3([10, 6, 8], B1, 0.2);
+    for (let y = 0; y < PH; y++) for (let x = 0; x < PW; x++) {
+      const i = y * PW + x, o = i * 4;
+      if (solid[i]) { O[o] = F[o]; O[o + 1] = F[o + 1]; O[o + 2] = F[o + 2]; continue; }
+      const n = (x > 0 && solid[i - 1]) || (x < PW - 1 && solid[i + 1]) || (y > 0 && solid[i - PW]) || (y < PH - 1 && solid[i + PW]);
+      if (n) { O[o] = ink[0]; O[o + 1] = ink[1]; O[o + 2] = ink[2]; }
+    }
+    g.putImageData(out, 0, 0);
+
+    // 5. pixel frame: gold border, inner hairline, corner diamonds
+    const gold = d.historical ? '#d8b860' : '#b89a58', goldD = U.shade(gold, -0.45);
+    g.fillStyle = goldD; g.fillRect(0, 0, PW, 1); g.fillRect(0, PH - 1, PW, 1); g.fillRect(0, 0, 1, PH); g.fillRect(PW - 1, 0, 1, PH);
+    g.fillStyle = gold; g.fillRect(1, 1, PW - 2, 1); g.fillRect(1, PH - 2, PW - 2, 1); g.fillRect(1, 1, 1, PH - 2); g.fillRect(PW - 2, 1, 1, PH - 2);
+    g.fillStyle = U.alpha(gold, 0.5);
+    g.fillRect(4, 4, PW - 8, 1); g.fillRect(4, PH - 5, PW - 8, 1); g.fillRect(4, 5, 1, PH - 10); g.fillRect(PW - 5, 5, 1, PH - 10);
+    for (const [x, y] of [[4, 4], [PW - 5, 4], [4, PH - 5], [PW - 5, PH - 5]]) {
+      g.fillStyle = gold; g.fillRect(x - 1, y - 2, 3, 5); g.fillRect(x - 2, y - 1, 5, 3);
+      g.fillStyle = U.shade(gold, 0.5); g.fillRect(x, y - 1, 1, 1);
+    }
+    c.pixel = true; c.historical = !!d.historical;
+    return c;
+  },
+
+  // Popularity palette with a minimum spacing, so flats, shades and highlights
+  // each keep one colour instead of a smooth gradient.
+  extractPalette(F, max) {
+    const counts = new Map();
+    for (let o = 0; o < F.length; o += 4) {
+      if (F[o + 3] < 200) continue;
+      const k = (F[o] >> 3) << 10 | (F[o + 1] >> 3) << 5 | (F[o + 2] >> 3);
+      counts.set(k, (counts.get(k) || 0) + 1);
+    }
+    const buckets = [...counts].sort((a, b) => b[1] - a[1]);
+    const pal = [];
+    for (const minD of [40, 26, 14]) {
+      for (const [k] of buckets) {
+        if (pal.length >= max) break;
+        const c = [((k >> 10) & 31) * 8 + 4, ((k >> 5) & 31) * 8 + 4, (k & 31) * 8 + 4];
+        if (pal.every(p => this.dist(p, c) > minD * minD)) pal.push(c);
+      }
+    }
+    return pal.length ? pal : [[0, 0, 0]];
+  },
+  dist(a, b) { const dr = a[0] - b[0], dg = a[1] - b[1], db = a[2] - b[2]; return 2 * dr * dr + 4 * dg * dg + 3 * db * db; },
+  nearest(pal, r, g, b) {
+    let best = pal[0], bd = Infinity;
+    for (const p of pal) { const d = this.dist(p, [r, g, b]); if (d < bd) { bd = d; best = p; } }
+    return best;
+  },
+  lerp3(a, b, t) { return [0, 1, 2].map(i => Math.round(a[i] + (b[i] - a[i]) * t)); },
+  // Studio-style hue-shifted shading: lighter goes warm, darker goes cool
+  hueShift(c, amt) {
+    const warm = [255, 236, 190], cool = [20, 16, 44];
+    return this.lerp3(c, amt >= 0 ? warm : cool, Math.abs(amt));
+  },
+
+  // --------------------------------------------------------------------
+  // fig = true paints only the figure on a transparent card (used by the pixel pass)
+  paint(g, d, expr, fig = false) {
     const W = this.W, H = this.H;
     const cx = 200;
     const E = this.expr(expr);
@@ -73,17 +202,19 @@ const Portraits = {
     const eyeY = 222, eyeDX = fw * 0.56;
 
     // --- background / frame -------------------------------------------
-    const bg = g.createRadialGradient(cx, 190, 20, cx, 260, 380);
-    bg.addColorStop(0, d.bg[0]); bg.addColorStop(1, d.bg[1]);
-    g.fillStyle = bg; g.fillRect(0, 0, W, H);
-    // soft light rays / pattern
-    g.save(); g.globalAlpha = 0.07; g.strokeStyle = '#fff'; g.lineWidth = 2;
-    for (let i = -8; i < 20; i++) { g.beginPath(); g.moveTo(i * 30, 0); g.lineTo(i * 30 + 200, H); g.stroke(); }
-    g.restore();
-    // rim-light glow behind head
-    const glow = g.createRadialGradient(cx - 40, 170, 10, cx - 40, 170, 230);
-    glow.addColorStop(0, 'rgba(255,230,190,0.22)'); glow.addColorStop(1, 'rgba(255,230,190,0)');
-    g.fillStyle = glow; g.fillRect(0, 0, W, H);
+    if (!fig) {
+      const bg = g.createRadialGradient(cx, 190, 20, cx, 260, 380);
+      bg.addColorStop(0, d.bg[0]); bg.addColorStop(1, d.bg[1]);
+      g.fillStyle = bg; g.fillRect(0, 0, W, H);
+      // soft light rays / pattern
+      g.save(); g.globalAlpha = 0.07; g.strokeStyle = '#fff'; g.lineWidth = 2;
+      for (let i = -8; i < 20; i++) { g.beginPath(); g.moveTo(i * 30, 0); g.lineTo(i * 30 + 200, H); g.stroke(); }
+      g.restore();
+      // rim-light glow behind head
+      const glow = g.createRadialGradient(cx - 40, 170, 10, cx - 40, 170, 230);
+      glow.addColorStop(0, 'rgba(255,230,190,0.22)'); glow.addColorStop(1, 'rgba(255,230,190,0)');
+      g.fillStyle = glow; g.fillRect(0, 0, W, H);
+    }
 
     // --- back hair ------------------------------------------------------
     this.hairBack(g, d, cx, fw, chin);
@@ -224,6 +355,7 @@ const Portraits = {
     }
 
     // --- frame / finishing ------------------------------------------------
+    if (fig) return;
     const vg = g.createRadialGradient(cx, 250, 150, cx, 250, 360);
     vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.55)');
     g.fillStyle = vg; g.fillRect(0, 0, W, H);

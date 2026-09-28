@@ -1,7 +1,7 @@
 # 半玉 · Half of Jade — A Sister's War, 1939–1940
 
 A story-driven 2D stealth side-scroller set in China during the Second Sino-Japanese War.
-Pixel-art levels, painted character portraits, dialogue-heavy cutscenes, branching choices and
+Pixel-art levels, pixel-art character portraits, dialogue-heavy cutscenes, branching choices and
 six endings — all in plain HTML5 Canvas + JavaScript, with **no dependencies and no asset files**:
 every sprite, portrait, painting, sound effect and piece of music is generated in code.
 
@@ -85,7 +85,7 @@ all 13 memories, **August 1945**.
 1. Prologue + 12 chapters across 13 hand-built levels, from Nanjing to Yan'an to Shanghai and back.
 2. Cold open in 1940 Chongqing that flashes back to 1939 Nanjing (sepia-filtered).
 3. On-screen conversations with five historical leaders; dozens more referenced.
-4. High-resolution painted portraits (26 characters × 15 expressions) in art-deco frames.
+4. Character portraits (26 characters × 15 expressions) in the [Moonkai Pixel Studio](https://github.com/Spaghettiosese/moonkai/tree/claude/peaceful-brown-jylvxx/pixel) style: 128×160 outlined, cel-shaded pixel busts with dithered backgrounds and pixel frames. **Settings → Portraits** switches back to the original painted look.
 5. 25+ painted cutscene backdrops with animated snow, rain, embers and fireworks.
 6. Chapter title cards with typed place/date and historical notes.
 7. Typewriter dialogue with voice blips, name plates, speaker highlighting and fast-forward.
@@ -164,7 +164,7 @@ all 13 memories, **August 1945**.
 | `js/util.js` | Constants, math, input, save storage |
 | `js/audio.js` | Synthesized SFX, ambience and adaptive music |
 | `js/sprites.js` | Procedural pixel-art character sprites |
-| `js/portraits.js` | Painted high-resolution portraits |
+| `js/portraits.js` | Portraits: vector painter + Pixel Studio pixel-art pass |
 | `js/art.js` | Painted cutscene backdrops |
 | `js/level.js` | Tile maps, collision, lighting, line of sight, parallax |
 | `js/entities.js` | Player, enemy AI, civilians, companions |

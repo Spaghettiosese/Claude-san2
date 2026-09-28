@@ -361,6 +361,7 @@ const UI = {
       { label: 'Cheat: infinite health', val: S.invincible ? 'On' : 'Off', toggle: () => { S.invincible = !S.invincible; } },
       { label: 'Cheat: undetectable', val: S.ghost ? 'On' : 'Off', toggle: () => { S.ghost = !S.ghost; } },
       { label: 'Film grain', val: S.grain ? 'On' : 'Off', toggle: () => { S.grain = !S.grain; } },
+      { label: 'Portraits', val: S.pixelPortraits !== false ? 'Pixel art' : 'Painted', toggle: () => { S.pixelPortraits = S.pixelPortraits === false; } },
       { label: 'Fullscreen', val: document.fullscreenElement ? 'On' : 'Off', toggle: () => { if (document.fullscreenElement) document.exitFullscreen(); else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); } },
       { label: 'Back', back: true },
     ];

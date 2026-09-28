@@ -8,7 +8,7 @@ const Game = {
   flags: {}, items: {}, docs: [], photos: [], aff: {}, choices: [], objective: '',
   state: { gun: null, firecrackers: 0, kills: 0, kos: 0, deaths: 0, alerts: 0, time: 0 },
   chapter: 0, toasts: [], time: 0, sceneQueue: [],
-  settings: { difficulty: 'normal', textSpeed: 55, cones: true, coneAlpha: 0.16, noiseRings: true, grain: true, master: 0.8, music: 0.55, sfx: 0.9, hints: true },
+  settings: { difficulty: 'normal', textSpeed: 55, cones: true, coneAlpha: 0.16, noiseRings: true, grain: true, pixelPortraits: true, master: 0.8, music: 0.55, sfx: 0.9, hints: true },
   meta: { achievements: {}, endings: {}, unlocked: 0, photosEver: {} },
   save: null,
 
